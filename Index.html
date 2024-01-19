@@ -8,10 +8,13 @@
   </head>
   <body>
     <canvas id="myChart" width="400" height="200"></canvas>
-    <div style="display: flex; justify-content: center;">
-        <div>Min Time: <input type="number" id="minTime" value="0"/></div>
-      <div>Density Level: <input type="number" onchange="changeZoom(this.value)" value="10"/></div>
-      <div>Max Time: <input type="number" id="maxTime" value="0"/></div>
+    <div style="display: flex; justify-content: center">
+      <div>Min Time: <input id="minTime" value="0" onchange="changeMinMaxTime(this.value)" /></div>
+      <div>
+        Density Level:
+        <input type="number" id="densityVal" onchange="changeZoom(this.value)" value="10" />
+      </div>
+      <div>Max Time: <input id="maxTime" value="0" onchange="changeMinMaxTime(this.value)" /></div>
     </div>
   </body>
   <script src="Index.js"></script>

@@ -6,18 +6,39 @@ let chartInstance;
 
 const changeZoom = (value) => {
   if (!isNaN(value) && value > 0) {
-    console.log("New zoom value:", value);
     fetchDataAndCreateChart(value);
   } else {
     console.log("Invalid zoom value.");
   }
 };
 
-async function fetchDataAndCreateChart(val) {
+const changeMinMaxTime = () => {
+  const minTime = timeStringToTimestamp(document.getElementById("minTime").value);
+  const maxTime = timeStringToTimestamp(document.getElementById("maxTime").value);
+  console.log(minTime, maxTime);
+  const value = document.getElementById("densityVal").value;
+  if (!isNaN(minTime) && !isNaN(maxTime)) {
+    fetchDataAndCreateChart(value, minTime, maxTime);
+  } else {
+    fetchDataAndCreateChart(value);
+  }
+};
+
+const filterData = (data, minTime, maxTime) => {
+  if (!minTime || !maxTime) {
+    return data;
+  }
+  return data.filter((entry) => {
+    return entry.time >= minTime && entry.time <= maxTime;
+  });
+}
+
+async function fetchDataAndCreateChart(val, minTime, maxTime) {
   try {
     const response = await fetch("dummy.json");
     const data = await response.json();
-    const sortedNewData = { data: data.data.sort((a, b) => a.time - b.time) };
+    const filteredData = filterData(data.data, minTime, maxTime);
+    const sortedNewData = { data: filteredData.sort((a, b) => a.time - b.time) };
     const multVal = multiple(val);
     const chartData = processDataForChart(sortedNewData, multVal);
     createChart(chartData, multVal);
@@ -53,31 +74,36 @@ function timestampToTime(timestamp) {
   const date = new Date(timestamp);
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
-
-  const formattedHours = hours < 10 ? `0${hours}` : hours;
   const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-  const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-
-  const timeString = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const timeString = `${day}/${month}/${year} ${hours}:${formattedMinutes}`;
   return timeString;
 }
 
+function timeStringToTimestamp(timeString) {
+  const [datePart, timePart] = timeString.split(' ');
+  const [day, month, year] = datePart.split('/');
+  const [hours, minutes] = timePart.split(':');
+  const dateObject = new Date(year, month - 1, day, hours, minutes);
+  const timestamp = dateObject.getTime();
+  return timestamp;
+}
+
+
 function createChart(chartData, val) {
   const label = chartData.labels.map((i) => i * val);
-  console.log(chartData);
-  document.getElementById("minTime").value = label[0];
-  document.getElementById("maxTime").value = label[label.length - 1];
+  document.getElementById("minTime").value = timestampToTime(label[0],"full");
+  document.getElementById("maxTime").value = timestampToTime(label[label.length - 1],"full");
   const ctx = document.getElementById("myChart").getContext("2d");
   if (chartInstance) {
     chartInstance.destroy();
-    console.log("Previous chart destroyed.");
   }
   chartInstance = new Chart(ctx, {
-    type: "bar",
+    type: 'line',
     data: {
-      labels: label,
+      labels: label.map(timestampToTime),
       datasets: [
         {
           label: "True",
@@ -97,7 +123,16 @@ function createChart(chartData, val) {
     },
     options: {
       scales: {
-        x: { type: "linear", position: "bottom" },
+        x: [{
+          type: 'time', // Specify that the x-axis represents time
+          time: {
+            unit: 'minute', // You can adjust the time unit as needed
+            displayFormats: {
+              minute: 'HH:mm', // Format for minutes
+            },
+          },
+          position: 'bottom',
+        }],
       },
     },
   });
