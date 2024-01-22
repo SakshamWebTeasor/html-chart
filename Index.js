@@ -15,7 +15,6 @@ const changeZoom = (value) => {
 const changeMinMaxTime = () => {
   const minTime = timeStringToTimestamp(document.getElementById("minTime").value);
   const maxTime = timeStringToTimestamp(document.getElementById("maxTime").value);
-  console.log(minTime, maxTime);
   const value = document.getElementById("densityVal").value;
   if (!isNaN(minTime) && !isNaN(maxTime)) {
     fetchDataAndCreateChart(value, minTime, maxTime);
@@ -124,11 +123,11 @@ function createChart(chartData, val) {
     options: {
       scales: {
         x: [{
-          type: 'time', // Specify that the x-axis represents time
+          type: 'time',
           time: {
-            unit: 'minute', // You can adjust the time unit as needed
+            unit: 'minute',
             displayFormats: {
-              minute: 'HH:mm', // Format for minutes
+              minute: 'HH:mm',
             },
           },
           position: 'bottom',
