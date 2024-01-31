@@ -171,7 +171,7 @@ function updateDataTable(sortedNewData) {
         },
       },
       {
-        data: "status", 
+        data: "status",
         render: function (data) {
           return data ? "Active" : "Inactive";
         },
