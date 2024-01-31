@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 let chartInstance;
+let DataTable;
 
 const changeZoom = (value) => {
   if (!isNaN(value) && value > 0) {
@@ -13,8 +14,12 @@ const changeZoom = (value) => {
 };
 
 const changeMinMaxTime = () => {
-  const minTime = timeStringToTimestamp(document.getElementById("minTime").value);
-  const maxTime = timeStringToTimestamp(document.getElementById("maxTime").value);
+  const minTime = timeStringToTimestamp(
+    document.getElementById("minTime").value
+  );
+  const maxTime = timeStringToTimestamp(
+    document.getElementById("maxTime").value
+  );
   const value = document.getElementById("densityVal").value;
   if (!isNaN(minTime) && !isNaN(maxTime)) {
     fetchDataAndCreateChart(value, minTime, maxTime);
@@ -30,17 +35,22 @@ const filterData = (data, minTime, maxTime) => {
   return data.filter((entry) => {
     return entry.time >= minTime && entry.time <= maxTime;
   });
-}
+};
 
 async function fetchDataAndCreateChart(val, minTime, maxTime) {
   try {
     const response = await fetch("dummy.json");
     const data = await response.json();
     const filteredData = filterData(data.data, minTime, maxTime);
-    const sortedNewData = { data: filteredData.sort((a, b) => a.time - b.time) };
+    const sortedNewData = {
+      data: filteredData.sort((a, b) => a.time - b.time),
+    };
     const multVal = multiple(val);
     const chartData = processDataForChart(sortedNewData, multVal);
-    createChart(chartData, multVal);
+    createChart(chartData, multVal, sortedNewData);
+    
+    // Update DataTable with sortedNewData
+    updateDataTable(filteredData);
   } catch (error) {
     console.error("Error fetching data:", error);
   }
@@ -82,25 +92,27 @@ function timestampToTime(timestamp) {
 }
 
 function timeStringToTimestamp(timeString) {
-  const [datePart, timePart] = timeString.split(' ');
-  const [day, month, year] = datePart.split('/');
-  const [hours, minutes] = timePart.split(':');
+  const [datePart, timePart] = timeString.split(" ");
+  const [day, month, year] = datePart.split("/");
+  const [hours, minutes] = timePart.split(":");
   const dateObject = new Date(year, month - 1, day, hours, minutes);
   const timestamp = dateObject.getTime();
   return timestamp;
 }
 
-
-function createChart(chartData, val) {
+function createChart(chartData, val, sortedNewData) {
   const label = chartData.labels.map((i) => i * val);
-  document.getElementById("minTime").value = timestampToTime(label[0],"full");
-  document.getElementById("maxTime").value = timestampToTime(label[label.length - 1],"full");
+  document.getElementById("minTime").value = timestampToTime(label[0], "full");
+  document.getElementById("maxTime").value = timestampToTime(
+    label[label.length - 1],
+    "full"
+  );
   const ctx = document.getElementById("myChart").getContext("2d");
   if (chartInstance) {
     chartInstance.destroy();
   }
   chartInstance = new Chart(ctx, {
-    type: 'line',
+    type: "line",
     data: {
       labels: label.map(timestampToTime),
       datasets: [
@@ -122,17 +134,48 @@ function createChart(chartData, val) {
     },
     options: {
       scales: {
-        x: [{
-          type: 'time',
-          time: {
-            unit: 'minute',
-            displayFormats: {
-              minute: 'HH:mm',
+        x: [
+          {
+            type: "time",
+            time: {
+              unit: "minute",
+              displayFormats: {
+                minute: "HH:mm",
+              },
             },
+            position: "bottom",
           },
-          position: 'bottom',
-        }],
+        ],
       },
     },
+  });
+}
+
+function updateDataTable(sortedNewData) {
+  if (DataTable) {
+    DataTable.destroy();
+  }
+
+  console.log(sortedNewData);
+
+  DataTable = $('#example').DataTable({
+    data: sortedNewData,
+    columns: [
+      { data: "user" },
+      { data: "email" },
+      { data: "id" },
+      {
+        data: "time",
+        render: function (data) {
+          return new Date(data).toLocaleString();
+        },
+      },
+      {
+        data: "status",
+        render: function (data) {
+          return data ? "Active" : "Inactive";
+        },
+      },
+    ],
   });
 }

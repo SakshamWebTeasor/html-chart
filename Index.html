@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
   </head>
   <body>
     <canvas id="myChart" width="400" height="200"></canvas>
@@ -16,6 +19,20 @@
       </div>
       <div>Max Time: <input id="maxTime" value="0" onchange="changeMinMaxTime(this.value)" /></div>
     </div>
+    <table id="example" class="display" style="width:100%">
+      <thead>
+          <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>ID</th>
+              <th>Time</th>
+              <th>Status</th>
+          </tr>
+      </thead>
+      <tbody>
+          <!-- Data will be inserted here dynamically -->
+      </tbody>
+    </table>
+    <script src="Index.js"></script>
   </body>
-  <script src="Index.js"></script>
 </html>
